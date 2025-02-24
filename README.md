@@ -32,11 +32,19 @@ A Flutter application for finding and exploring kindergartens.
 
 ## Getting Started
 
+### Prerequisites
+- Flutter SDK (version 3.24.0)
+- Dart SDK
+- An IDE (VS Code or Android Studio)
+- A physical device or emulator/simulator
+
+### Setup Instructions
+
 1. Clone the repository
-2. Run `flutter pub get` to install dependencies
+2. Run `flutter clean && flutter pub get` to install dependencies
 3. Run `flutter run` to start the application
 
 ## Dependencies
 
+- flutter: Version 3.24.0
 - provider: For state management
-- flutter: SDK version (add your Flutter version)
