@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
 import '../models/kindergarten.dart';
@@ -5,27 +7,40 @@ import '../models/kindergarten.dart';
 class KindergartenProvider with ChangeNotifier {
 
   final ApiService _apiService = ApiService();
-  final List<Kindergarten> _kindergartens = [];
   bool _isLoading = false;
   String _error = '';
 
   int _currentPage = 1;
   int _perPage = 10;
-  bool _hasMoreData = true;
+
+  List<Kindergarten> _allKindergartens = [];
+  String _searchQuery = '';
 
   // the getters and setters
   bool get isLoading => _isLoading;
   String get error => _error;
-  List<Kindergarten> get kindergartens => _kindergartens;
-  bool get hasMoreData => _hasMoreData;
+  List<Kindergarten> get kindergartens => _searchQuery.isEmpty 
+    ? _allKindergartens 
+    : _allKindergartens.where((k) => 
+        k.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+        k.city.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+        k.state.toLowerCase().contains(_searchQuery.toLowerCase())
+      ).toList();
   int get currentPage => _currentPage;
+  int get perPage => _perPage;
   set currentPage(int page) => _currentPage = page;
+  set perPage(int page) => _perPage = page;
+
 
   // fetch list of kindergartens
-  Future<void> fetchKindergartens() async {
+  Future<void> fetchKindergartens({
+    required int currentPage,
+    required int perPage,
+  }) async {
     if (_isLoading) return;
     
     setLoading(true);
+    log('currentPage: $currentPage --> perPage: $perPage');
     try {
       // delay for 2 seconds - to show the loading indicator
       await Future.delayed(const Duration(seconds: 2));
@@ -34,16 +49,15 @@ class KindergartenProvider with ChangeNotifier {
         perPage: _perPage,
       );
 
+
       if (_currentPage == 1) {
-        _kindergartens.clear();
+        _allKindergartens.clear();
       }
       
+      // if there are kindergartens, add to the list
       if (response.isNotEmpty) {
-        _kindergartens.addAll(response);
-        _hasMoreData = response.length >= _perPage;
+        _allKindergartens.addAll(response);
         _currentPage++;
-      } else {
-        _hasMoreData = false;
       }
 
       setLoading(false);
@@ -71,6 +85,12 @@ class KindergartenProvider with ChangeNotifier {
   // to set the loading state
   void setLoading(bool loading) {
     _isLoading = loading;
+    notifyListeners();
+  }
+
+  // search kindergartens
+  void searchKindergartens(String query) {
+    _searchQuery = query;
     notifyListeners();
   }
 
