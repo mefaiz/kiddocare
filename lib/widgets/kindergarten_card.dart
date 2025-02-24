@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:kiddocare/widgets/loading.dart';
+import 'package:kiddocare/utils/routes.dart';
+import 'package:kiddocare/widgets/kindergarten_image.dart';
 import '../models/kindergarten.dart';
 
 class KindergartenCard extends StatelessWidget {
   final Kindergarten kindergarten;
-  final VoidCallback onTap;
 
   const KindergartenCard({
     Key? key,
     required this.kindergarten,
-    required this.onTap,
   }) : super(key: key);
 
   @override
@@ -18,7 +16,12 @@ class KindergartenCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: InkWell(
-        onTap: onTap,
+        onTap: ()=> Navigator.pushNamed(context, 
+          AppRoutes.detailScreen, 
+          arguments: {
+            "kindergartenId": kindergarten.id
+          }
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -27,13 +30,9 @@ class KindergartenCard extends StatelessWidget {
             // image
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-              child: CachedNetworkImage(
+              child: KindergartenImage(
                 imageUrl: kindergarten.imageUrl,
                 height: 100,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => const GlobalLoading(),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
               ),
             ),
 

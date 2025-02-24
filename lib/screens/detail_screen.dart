@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:kiddocare/widgets/kindergarten_image.dart';
 import 'package:kiddocare/widgets/loading.dart';
 import 'package:kiddocare/widgets/no_data.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/kindergarten_provider.dart';
 
 class DetailScreen extends StatelessWidget {
@@ -23,21 +23,27 @@ class DetailScreen extends StatelessWidget {
         future: () async {
           final provider = context.read<KindergartenProvider>();
           try {
-              return await provider.getKindergartenDetails(kindergartenId);
-            } finally {
+            return await provider.getKindergartenDetails(kindergartenId);
+          } catch (e) {
+            // Handle error
+            rethrow; // Re-throw the error to be caught by FutureBuilder
           }
         }(),
         builder: (context, snapshot) {
+          
+          // show loading indicator
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const GlobalLoading();
           }
 
+          // show error message
           if (snapshot.hasError) {
             return Center(
               child: Text('Error: ${snapshot.error}'),
             );
           }
 
+          // show no data message
           final kindergarten = snapshot.data;
           if (kindergarten == null) {
             return const NoKindergartens();
@@ -49,13 +55,9 @@ class DetailScreen extends StatelessWidget {
               children: [
 
                 // Image of kindergarten
-                CachedNetworkImage(
-                  imageUrl: kindergarten.imageUrl,
+                KindergartenImage(
+                  imageUrl: kindergarten.imageUrl, 
                   height: 300,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
                 ),
 
                 // body content
@@ -115,11 +117,13 @@ class DetailScreen extends StatelessWidget {
                         leading: const Icon(Icons.location_city),
                         title: Text('${kindergarten.city}, ${kindergarten.state}'),
                       ),
+
                       const SizedBox(height: 16),
                       
                     ],
                   ),
                 ),
+
               ],
             ),
           );
@@ -127,4 +131,4 @@ class DetailScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}
