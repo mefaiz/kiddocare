@@ -25,6 +25,9 @@ A Flutter application for finding and exploring kindergartens.
 - `lib/services/` - API and backend services
   - `api_service.dart` - Handles API requests
 
+- `lib/utils/` - utilities
+  - `routes.dart` - Route definitions
+
 - `lib/widgets/` - Reusable UI components
   - `kindergarten_card.dart` - Card widget for displaying kindergarten preview
   - `loading.dart` - Loading indicators
