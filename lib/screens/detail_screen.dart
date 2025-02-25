@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:kiddocare/models/kindergarten.dart';
 import 'package:kiddocare/widgets/kindergarten_image.dart';
 import 'package:kiddocare/widgets/loading.dart';
 import 'package:kiddocare/widgets/no_data.dart';
 import 'package:provider/provider.dart';
 import '../providers/kindergarten_provider.dart';
 
-class DetailScreen extends StatelessWidget {
+class DetailScreen extends StatefulWidget {
   final int kindergartenId;
 
   const DetailScreen({
@@ -14,121 +15,129 @@ class DetailScreen extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<DetailScreen> createState() => _DetailScreenState();
+}
+
+class _DetailScreenState extends State<DetailScreen> {
+  
+  bool _isLoading = true;
+  dynamic _error;
+  Kindergarten? _kindergarten;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchKindergartenDetails();
+  }
+
+  // fetch kindergarten details
+  Future<void> _fetchKindergartenDetails() async {
+    try {
+      final provider = context.read<KindergartenProvider>();
+      final kindergarten = await provider.getKindergartenDetails(widget.kindergartenId);
+      
+      if (mounted) {
+        setState(() {
+          _kindergarten = kindergarten;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e;
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kindergarten Details'),
       ),
-      body: FutureBuilder(
-        future: () async {
-          final provider = context.read<KindergartenProvider>();
-          try {
-            return await provider.getKindergartenDetails(kindergartenId);
-          } catch (e) {
-            // Handle error
-            rethrow; // Re-throw the error to be caught by FutureBuilder
-          }
-        }(),
-        builder: (context, snapshot) {
-          
-          // show loading indicator
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const GlobalLoading();
-          }
+      body: _isLoading 
+        ? const GlobalLoading()
+        : _error != null
+          ? Center(child: Text('Error: $_error'))
+          : _kindergarten == null
+            ? const NoKindergartens()
+            : SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-          // show error message
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
-          }
+                    // image of kindergarten  
+                    KindergartenImage(
+                      imageUrl: _kindergarten?.imageUrl ?? '', 
+                      height: 300,
+                    ),
 
-          // show no data message
-          final kindergarten = snapshot.data;
-          if (kindergarten == null) {
-            return const NoKindergartens();
-          }
-
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
-                // Image of kindergarten
-                KindergartenImage(
-                  imageUrl: kindergarten.imageUrl, 
-                  height: 300,
-                ),
-
-                // body content
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      
-                      // name and description
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          kindergarten.name,
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                        subtitle: Text(
-                          kindergarten.description,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ),
-
-                      // city location
-                      const SizedBox(height: 16),
-                      Row(
+                    // name and description
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.location_on),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              kindergarten.city,
-                              style: Theme.of(context).textTheme.bodyLarge,
+
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              _kindergarten?.name ?? '',
+                              style: Theme.of(context).textTheme.headlineMedium,
+                            ),
+                            subtitle: Text(
+                              _kindergarten?.description ?? '',
+                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ),
+                          const SizedBox(height: 16),
+
+                          // kindergarten city
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _kindergarten?.city ?? '',
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          Text(
+                            'Contact Details',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 8),
+
+                          // contact person and contact number
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.person),
+                            title: Text(_kindergarten?.contactPerson ?? ''),
+                            subtitle: Text(_kindergarten?.contactNo ?? ''),
+                          ),
+
+                          // city and state
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.location_city),
+                            title: Text('${_kindergarten?.city}, ${_kindergarten?.state}'),
+                          ),
+                          const SizedBox(height: 16),
                         ],
                       ),
-                      const SizedBox(height: 16),
-
-                      // contact details
-                      Text(
-                        'Contact Details',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-
-                      // contact details
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.person),
-                        title: Text(kindergarten.contactPerson),
-                        subtitle: Text(kindergarten.contactNo),
-                      ),
-
-                      // kindergarten location
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.location_city),
-                        title: Text('${kindergarten.city}, ${kindergarten.state}'),
-                      ),
-
-                      const SizedBox(height: 16),
-                      
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-
-              ],
-            ),
-          );
-        },
-      ),
+              ),
     );
   }
 }

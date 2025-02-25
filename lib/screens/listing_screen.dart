@@ -104,7 +104,7 @@ class _ListingScreenState extends State<ListingScreen> {
                       }
                     ),
                   
-                  // loading indicator
+                  // loading indicator to load more data
                   if (provider.isLoading)
                     const Padding(
                       padding: EdgeInsets.all(8.0),
@@ -162,7 +162,7 @@ class _ListingScreenState extends State<ListingScreen> {
               keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: const InputDecoration(
-                labelText: 'Page Number',
+                labelText: 'Next Page Number',
                 border: OutlineInputBorder(),
               ),
             ),
